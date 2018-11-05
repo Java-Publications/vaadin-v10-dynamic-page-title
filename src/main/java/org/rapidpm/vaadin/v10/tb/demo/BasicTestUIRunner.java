@@ -15,13 +15,18 @@
  */
 package org.rapidpm.vaadin.v10.tb.demo;
 
+import static java.lang.System.setProperty;
+
 import org.apache.meecrowave.Meecrowave;
+import org.rapidpm.vaadin.v10.tb.demo.views.v03.i18n.VaadinI18NProvider;
 
 public class BasicTestUIRunner {
   private BasicTestUIRunner() {
   }
 
   public static void main(String[] args) {
+    setProperty("vaadin.i18n.provider", VaadinI18NProvider.class.getName());
+
     new Meecrowave(new Meecrowave.Builder() {
       {
 //        randomHttpPort();
