@@ -93,7 +93,7 @@
     <rapidpm-dependencies.version>04.00.07-RPM</rapidpm-dependencies.version>
 
     <!--Vaadin-->
-    <vaadin.version>10.0.6</vaadin.version>
+    <vaadin.version>11.0.1</vaadin.version>
     <meecrowave.version>1.2.4</meecrowave.version>
 
   </properties>
@@ -247,7 +247,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
-        <version>3.2.1</version>
+        <version>3.2.2</version>
         <configuration>
           <!-- das brauchts leider, sonst muessen wir ein web.xml tippen... -->
           <failOnMissingWebXml>false</failOnMissingWebXml>
