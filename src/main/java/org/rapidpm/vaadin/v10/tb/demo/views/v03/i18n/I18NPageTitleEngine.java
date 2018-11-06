@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Locale;
 
 import org.rapidpm.dependencies.core.logger.HasLogger;
+import org.rapidpm.frp.functions.CheckedFunction;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.i18n.I18NProvider;
 import com.vaadin.flow.router.BeforeEnterEvent;
@@ -22,14 +23,17 @@ import com.vaadin.flow.server.VaadinServiceInitListener;
 public class I18NPageTitleEngine implements VaadinServiceInitListener, UIInitListener, BeforeEnterListener, HasLogger {
 
 
+  public static final String ERROR_MSG_NO_LOCALE = "no locale provided and i18nProvider #getProvidedLocales()# list is empty !! ";
+  public static final String ERROR_MSG_NO_ANNOTATION = "no annotation found at class ";
+
   @Override
   public void beforeEnter(BeforeEnterEvent event) {
     Class<?> navigationTarget = event.getNavigationTarget();
-    I18NPageTitel annotation = navigationTarget.getAnnotation(I18NPageTitel.class);
+    I18NPageTitle annotation = navigationTarget.getAnnotation(I18NPageTitle.class);
     match(
         matchCase(() -> success(annotation.messageKey())) ,
         matchCase(() -> annotation == null ,
-                  () -> failure("no annotation found at class " + navigationTarget.getName())) ,
+                  () -> failure(ERROR_MSG_NO_ANNOTATION + navigationTarget.getName())) ,
         matchCase(() -> annotation.messageKey().isEmpty() ,
                   () -> success(annotation.defaultValue()))
     )
@@ -44,22 +48,23 @@ public class I18NPageTitleEngine implements VaadinServiceInitListener, UIInitLis
               match(
                   matchCase(() -> success(providedLocales.get(0))) ,
                   matchCase(() -> locale == null && providedLocales.isEmpty() ,
-                            () -> failure("no locale provided and i18nProvider #getProvidedLocales()# list is empty !! " + i18NProvider.getClass().getName())) ,
+                            () -> failure(ERROR_MSG_NO_LOCALE + i18NProvider.getClass().getName())) ,
                   matchCase(() -> locale == null ,
                             () -> success(providedLocales.get(0))) ,
                   matchCase(() -> providedLocales.contains(locale) ,
                             () -> success(locale))
               ).ifPresentOrElse(
-                  finalLocale -> UI.getCurrent()
-                                   .getPage()
-                                   .setTitle(i18NProvider.getTranslation(msgKey , finalLocale)
-                                             + " | "
-                                             + i18NProvider.getTranslation("global.app.name" , finalLocale)) ,
+                  finalLocale -> ((CheckedFunction<Class<? extends TitleFormatter>, TitleFormatter>) f -> f.getDeclaredConstructor().newInstance())
+                  .apply(annotation.formatter())
+                  .ifPresentOrElse(formatter -> formatter
+                      .apply(i18NProvider,finalLocale,msgKey).
+                      ifPresentOrElse(title -> UI.getCurrent()
+                                                 .getPage()
+                                                 .setTitle(title),
+                                      failed -> logger().info(failed)) , failed -> logger().info(failed)) ,
                   failed -> logger().info(failed));
             }
             , failed -> logger().info(failed));
-
-
   }
 
   @Override

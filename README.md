@@ -3,10 +3,10 @@
  <img src="https://vaadin.com/images/hero-reindeer.svg" width="200" height="200" /></a>
 </center>
 
-# Vaadin V10 app with 18N Page Title, dynamically created
+# Vaadin V10 app with I18N Page Title, dynamically created
 What I want to show in this example is, how you could deal with 
 a dynamic page title per view (or time or what ever)
-that will handle your browser local as well.
+that will handle your browser Locale as well.
 
 
 ## Solution 01 - the worst case
@@ -51,7 +51,7 @@ So far so good. You can implement this in different ways. The only thing you sho
 that your solution is able to handle more than one Thread at the same time.
 Even during the initialisation phase. Sometimes I see solutions with a critical init-phase.
 For example, that a public constructor will set a static attribute. If you want to build a Singleton, 
-build a thread save version. Having in mind, that this will be used heavily, 
+build a thread save version, please. Having in mind, that this will be used heavily, 
 the call to get a translation should **not** be blocking.
 
 ### setting the Title
@@ -80,7 +80,7 @@ We have to extract the repeating part..  This could lead to version 02...
 
 ## Solution 02 - A - the first quality increase
 
-Noew we are extracting the formatting part, first. For this a class with the name **cc**
+We are extracting the formatting part, first. For this a class with the name **TitleFormatter**
 is created. Inside you can define the way, how the page title will be formatted.
 
 ```java
@@ -93,9 +93,10 @@ public class TitleFormatter {
 }
 ``` 
 
-The goal that is achieved is the central place for the way, how to format the page title.
-The next step is, to remove the invocation out of the constructor.
-Vaadin provides an interface called **HasDynamicTitle**. implementing this, 
+With this class, 
+we have a central place for the definition, how the title should look like.
+The next step is, to remove the invocation method out of the constructor.
+Vaadin provides an interface called **HasDynamicTitle**. Implementing this, 
 you can overwrite the method **getPageTitle()**. But again, you would implement this 
 in every view...
 
@@ -113,7 +114,7 @@ public class View002 extends Composite<Div> implements HasDynamicTitle {
 }
 ```  
 
-One solution could be based on inheritance, packing this stuff in a parent class.
+One solution could be based on inheritance, packing this stuff into a parent class.
 But how to get the actual **key** to resolve without implementing something in every child class?
 
 ## Solution 02 - B - the first quality increase
@@ -132,7 +133,7 @@ public class View002 extends Composite<Div> {
 The usage of this Annotation is XOR to the usage of the interface **HasDynamicTitle**.
 So, make sure that there is nothing in your inheritance.
 
-The challenge here is based on the fact, thet the annotation ony consumes static Strings.
+The challenge here is based on the fact, that the annotation ony consumes static Strings.
 I18N is not possible with this solution.
 
 ## Solution 03 - my favourite solution ;-)
@@ -140,7 +141,7 @@ After playing around with this solutions, I developed a
 a solution that could handle
 
 * message bundles
-* is not inside inheritence
+* is not inside inheritance
 * is based on Annotations
 * is easy to extend
 * can change the language during runtime
@@ -151,7 +152,7 @@ from the perspective of a developer.
 Here it means, what should a developer see if he/she have to use your solution.
 
 The developer will see this Annotation.
-Here three things can be defined. 
+Three things can be defined here. 
 
 * The message key that will be used to resolve the message based on the actual Locale
 * A default value the will be used, if no corresponding resource key was found neither fallback language is provided 
@@ -160,7 +161,7 @@ Here three things can be defined.
 
 ```java
 @Retention(RetentionPolicy.RUNTIME)
-public @interface I18NPageTitel {
+public @interface I18NPageTitle {
   String messageKey() default "";
   String defaultValue() default "";
   Class< ? extends TitleFormatter> formatter() default DefaultTitleFormatter.class;
@@ -171,7 +172,7 @@ The default usage should look like the following one.
 
 ```java
 @Route(View003.VIEW_003)
-@I18NPageTitel(messageKey = "view.title")
+@I18NPageTitle(messageKey = "view.title")
 public class View003 extends Composite<Div> implements HasLogger {
   public static final String VIEW_003 = "view003";
 }
@@ -198,7 +199,7 @@ public class I18NPageTitleEngine
   @Override
   public void beforeEnter(BeforeEnterEvent event) {
     Class<?> navigationTarget = event.getNavigationTarget();
-    I18NPageTitel annotation = navigationTarget.getAnnotation(I18NPageTitel.class);
+    I18NPageTitle annotation = navigationTarget.getAnnotation(I18NPageTitle.class);
     match(
         matchCase(() -> success(annotation.messageKey())) ,
         matchCase(() -> annotation == null ,
@@ -262,7 +263,7 @@ This few lines are introducing a new thing, that is available in Vaadin 10.
 The interface **I18NProvider** is used to implement a mechanism for the internationalization 
 of Vaadin applications.
 
-The interface is simple and with onle two methods to implement.
+The interface is simple and with only two methods to implement.
 
 ```java
 public interface I18NProvider extends Serializable {
@@ -276,8 +277,8 @@ The second method is used to translate the message key itself.
 In this method the handling of a default translation or better the switch into a default language 
 should be handled. Missing keys can be handled differently. Some developers are throwing 
 an exception, but I prefer to return the key itself, 
-together with the locale from the original request. This information is mostly better to use as a stacktrace.
-
+together with the locale from the original request. 
+This information is mostly better to use as a stacktrace.
 
 The solution that is bundled with this demo is able to handle the Locales EN ad DE, fallback will be the locale EN.
 The implementation is not dealing with reloads of message bundles during runtime or other 

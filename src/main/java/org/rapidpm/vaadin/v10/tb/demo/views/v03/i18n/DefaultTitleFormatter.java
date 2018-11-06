@@ -4,10 +4,10 @@ import java.util.Locale;
 
 import com.vaadin.flow.i18n.I18NProvider;
 
-public interface DefaultTitleFormatter extends TitleFormatter {
+public class DefaultTitleFormatter implements TitleFormatter {
 
   @Override
-  default String applyWithException(I18NProvider i18NProvider , Locale locale , String key) throws Exception {
+  public String applyWithException(I18NProvider i18NProvider , Locale locale , String key) throws Exception {
     return i18NProvider.getTranslation(key, locale);
   }
 }
