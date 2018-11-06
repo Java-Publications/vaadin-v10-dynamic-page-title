@@ -43,7 +43,7 @@ public class VaadinI18NProvider implements I18NProvider, HasLogger {
     )
         .map(resourceBundle -> {
           if (! resourceBundle.containsKey(key))
-            logger().info("missing ressource key (i18n) " + key);
+            logger().info("missing resource key (i18n) " + key);
 
           return (resourceBundle.containsKey(key)) ? resourceBundle.getString(key) : key;
 

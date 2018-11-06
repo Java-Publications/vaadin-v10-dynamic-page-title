@@ -100,7 +100,7 @@ Vaadin provides an interface called **HasDynamicTitle**. Implementing this,
 you can overwrite the method **getPageTitle()**. But again, you would implement this 
 in every view...
 
-```java 
+```java
 @Route(View002.VIEW_002)
 public class View002 extends Composite<Div> implements HasDynamicTitle {
   public static final String VIEW_002 = "view002";
@@ -216,7 +216,7 @@ public class I18NPageTitleEngine
               final I18NProvider i18NProvider = VaadinService
                   .getCurrent()
                   .getInstantiator()
-                  .getOrCreate(VaadinI18NProvider.class);
+                  .getI18NProvider();
               final Locale locale = event.getUI().getLocale();
               final List<Locale> providedLocales = i18NProvider.getProvidedLocales();
               match(
@@ -266,7 +266,7 @@ But there is one new thing...  let´s have a look ot the following lines.
               final I18NProvider i18NProvider = VaadinService
                   .getCurrent()
                   .getInstantiator()
-                  .getOrCreate(VaadinI18NProvider.class);
+                  .getI18NProvider();
 ```
 
 This few lines are introducing a new thing, that is available in Vaadin 10.
