@@ -1,4 +1,4 @@
-package org.rapidpm.vaadin.v10.tb.demo.views.v03.i18n;
+package org.rapidpm.vaadin.api.i18n;
 
 import static org.rapidpm.frp.matcher.Case.match;
 import static org.rapidpm.frp.matcher.Case.matchCase;
@@ -10,6 +10,9 @@ import java.util.Locale;
 
 import org.rapidpm.dependencies.core.logger.HasLogger;
 import org.rapidpm.frp.functions.CheckedFunction;
+import org.rapidpm.vaadin.v10.tb.demo.views.v03.i18n.I18NPageTitle;
+import org.rapidpm.vaadin.v10.tb.demo.views.v03.i18n.TitleFormatter;
+import org.rapidpm.vaadin.v10.tb.demo.views.v03.i18n.VaadinI18NProvider;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.i18n.I18NProvider;
 import com.vaadin.flow.router.BeforeEnterEvent;
@@ -55,13 +58,15 @@ public class I18NPageTitleEngine implements VaadinServiceInitListener, UIInitLis
                             () -> success(locale))
               ).ifPresentOrElse(
                   finalLocale -> ((CheckedFunction<Class<? extends TitleFormatter>, TitleFormatter>) f -> f.getDeclaredConstructor().newInstance())
-                  .apply(annotation.formatter())
-                  .ifPresentOrElse(formatter -> formatter
-                      .apply(i18NProvider,finalLocale,msgKey).
-                      ifPresentOrElse(title -> UI.getCurrent()
-                                                 .getPage()
-                                                 .setTitle(title),
-                                      failed -> logger().info(failed)) , failed -> logger().info(failed)) ,
+                      .apply(annotation.formatter())
+                      .ifPresentOrElse(
+                          formatter -> formatter
+                              .apply(i18NProvider , finalLocale , msgKey).
+                                  ifPresentOrElse(title -> UI.getCurrent()
+                                                             .getPage()
+                                                             .setTitle(title) ,
+                                                  failed -> logger().info(failed)) ,
+                          failed -> logger().info(failed)) ,
                   failed -> logger().info(failed));
             }
             , failed -> logger().info(failed));

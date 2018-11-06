@@ -193,8 +193,12 @@ The class that is implementing all these interfaces is called **I18NPageTitleEng
 
 ```java
 public class I18NPageTitleEngine 
-        implements VaadinServiceInitListener, UIInitListener, BeforeEnterListener, HasLogger {
+       implements VaadinServiceInitListener, 
+                  UIInitListener, BeforeEnterListener, HasLogger {
 
+
+  public static final String ERROR_MSG_NO_LOCALE = "no locale provided and i18nProvider #getProvidedLocales()# list is empty !! ";
+  public static final String ERROR_MSG_NO_ANNOTATION = "no annotation found at class ";
 
   @Override
   public void beforeEnter(BeforeEnterEvent event) {
@@ -203,7 +207,7 @@ public class I18NPageTitleEngine
     match(
         matchCase(() -> success(annotation.messageKey())) ,
         matchCase(() -> annotation == null ,
-                  () -> failure("no annotation found at class " + navigationTarget.getName())) ,
+                  () -> failure(ERROR_MSG_NO_ANNOTATION + navigationTarget.getName())) ,
         matchCase(() -> annotation.messageKey().isEmpty() ,
                   () -> success(annotation.defaultValue()))
     )
@@ -218,17 +222,22 @@ public class I18NPageTitleEngine
               match(
                   matchCase(() -> success(providedLocales.get(0))) ,
                   matchCase(() -> locale == null && providedLocales.isEmpty() ,
-                            () -> failure("no locale provided and i18nProvider #getProvidedLocales()# list is empty !! " + i18NProvider.getClass().getName())) ,
+                            () -> failure(ERROR_MSG_NO_LOCALE + i18NProvider.getClass().getName())) ,
                   matchCase(() -> locale == null ,
                             () -> success(providedLocales.get(0))) ,
                   matchCase(() -> providedLocales.contains(locale) ,
                             () -> success(locale))
               ).ifPresentOrElse(
-                  finalLocale -> UI.getCurrent()
-                                   .getPage()
-                                   .setTitle(i18NProvider.getTranslation(msgKey , finalLocale)
-                                             + " | "
-                                             + i18NProvider.getTranslation("global.app.name" , finalLocale)) ,
+                  finalLocale -> ((CheckedFunction<Class<? extends TitleFormatter>, TitleFormatter>) f -> f.getDeclaredConstructor().newInstance())
+                      .apply(annotation.formatter())
+                      .ifPresentOrElse(
+                          formatter -> formatter
+                              .apply(i18NProvider , finalLocale , msgKey).
+                                  ifPresentOrElse(title -> UI.getCurrent()
+                                                             .getPage()
+                                                             .setTitle(title) ,
+                                                  failed -> logger().info(failed)) ,
+                          failed -> logger().info(failed)) ,
                   failed -> logger().info(failed));
             }
             , failed -> logger().info(failed));
@@ -249,6 +258,7 @@ public class I18NPageTitleEngine
   }
 }
 ```
+
 The method with the name **beforeEnter** is the important part. Here you can see how the key is resolved.
 But there is one new thing...  let´s have a look ot the following lines.
 
